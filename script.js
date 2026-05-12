@@ -19,8 +19,14 @@ let dy = 0;
 let foodX = 0;
 let foodY = 0;
 
+// Poison array
+let poisons = [];
+
 // Score
 let score = 0;
+
+// Level
+let level = 1;
 
 // Main game loop
 function drawGame() {
@@ -36,12 +42,15 @@ function drawGame() {
   }
 
   clearScreen();
+
   drawFood();
+  drawPoison();
   drawSnake();
   drawScore();
+  drawLevel();
 
   // Win condition
-  if (score >= 6) {
+  if (score >= 15) {
 
     alert("You Win!");
     document.location.reload();
@@ -98,7 +107,18 @@ function moveSnake() {
 
     score++;
 
+    // Level system
+    if (score >= 10) {
+
+      level = 3;
+
+    } else if (score >= 5) {
+
+      level = 2;
+    }
+
     createFood();
+    createPoison();
 
   } else {
 
@@ -117,6 +137,27 @@ function drawFood() {
     gridSize,
     gridSize
   );
+}
+
+// Draw poison
+function drawPoison() {
+
+  ctx.fillStyle = "purple";
+
+  poisons.forEach(poison => {
+
+    ctx.beginPath();
+
+    ctx.arc(
+      poison.x * gridSize + 10,
+      poison.y * gridSize + 10,
+      10,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+  });
 }
 
 // Create random food
@@ -143,6 +184,24 @@ function createFood() {
   }
 }
 
+// Create poison
+function createPoison() {
+
+  poisons = [];
+
+  let poisonCount = level;
+
+  for (let i = 0; i < poisonCount; i++) {
+
+    let poison = {
+      x: Math.floor(Math.random() * tileCountX),
+      y: Math.floor(Math.random() * tileCountY)
+    };
+
+    poisons.push(poison);
+  }
+}
+
 // Draw score
 function drawScore() {
 
@@ -152,6 +211,19 @@ function drawScore() {
   ctx.fillText(
     "Score: " + score,
     10,
+    25
+  );
+}
+
+// Draw level
+function drawLevel() {
+
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+
+  ctx.fillText(
+    "Level: " + level,
+    300,
     25
   );
 }
@@ -177,6 +249,17 @@ function checkCollision() {
     if (
       head.x === snake[i].x &&
       head.y === snake[i].y
+    ) {
+      return true;
+    }
+  }
+
+  // Poison collision
+  for (let i = 0; i < poisons.length; i++) {
+
+    if (
+      head.x === poisons[i].x &&
+      head.y === poisons[i].y
     ) {
       return true;
     }
@@ -221,6 +304,9 @@ function changeDirection(event) {
 
 // Create first food
 createFood();
+
+// Create first poison
+createPoison();
 
 // Start game
 drawGame();
