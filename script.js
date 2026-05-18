@@ -1,6 +1,12 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+const levelSelect =
+  document.getElementById("levelSelect");
+
+const startButton =
+  document.getElementById("startButton");
+
 const gridSize = 20;
 
 const tileCountX = canvas.width / gridSize;
@@ -28,16 +34,31 @@ let score = 0;
 // Level
 let level = 1;
 
+// Win score
+const winScore = 6;
+
+// Game speed
+let gameSpeed = 150;
+
+// Game started
+let gameStarted = false;
+
 // Main game loop
 function drawGame() {
 
+  if (!gameStarted) {
+    return;
+  }
+
   moveSnake();
 
-  // Check collisions
+  // Collision
   if (checkCollision()) {
 
     alert("Game Over!");
+
     document.location.reload();
+
     return;
   }
 
@@ -49,22 +70,30 @@ function drawGame() {
   drawScore();
   drawLevel();
 
-  // Win condition
-  if (score >= 15) {
+  // Win
+  if (score >= winScore) {
 
     alert("You Win!");
+
     document.location.reload();
+
     return;
   }
 
-  setTimeout(drawGame, 150);
+  setTimeout(drawGame, gameSpeed);
 }
 
 // Clear screen
 function clearScreen() {
 
   ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
 }
 
 // Draw snake
@@ -102,20 +131,10 @@ function moveSnake() {
 
   snake.unshift(head);
 
-  // Snake eats food
+  // Eat food
   if (head.x === foodX && head.y === foodY) {
 
     score++;
-
-    // Level system
-    if (score >= 10) {
-
-      level = 3;
-
-    } else if (score >= 5) {
-
-      level = 2;
-    }
 
     createFood();
     createPoison();
@@ -160,25 +179,40 @@ function drawPoison() {
   });
 }
 
-// Create random food
+// Create food
 function createFood() {
 
-  let foodOnSnake = true;
+  let validPosition = false;
 
-  while (foodOnSnake) {
+  while (!validPosition) {
 
-    foodX = Math.floor(Math.random() * tileCountX);
-    foodY = Math.floor(Math.random() * tileCountY);
+    foodX =
+      Math.floor(Math.random() * tileCountX);
 
-    foodOnSnake = false;
+    foodY =
+      Math.floor(Math.random() * tileCountY);
 
+    validPosition = true;
+
+    // Not on snake
     for (let i = 0; i < snake.length; i++) {
 
       if (
         snake[i].x === foodX &&
         snake[i].y === foodY
       ) {
-        foodOnSnake = true;
+        validPosition = false;
+      }
+    }
+
+    // Not on poison
+    for (let i = 0; i < poisons.length; i++) {
+
+      if (
+        poisons[i].x === foodX &&
+        poisons[i].y === foodY
+      ) {
+        validPosition = false;
       }
     }
   }
@@ -189,16 +223,69 @@ function createPoison() {
 
   poisons = [];
 
-  let poisonCount = level;
+  let poisonCount = 1;
+
+  // Easy
+  if (level === 1) {
+
+    poisonCount = 1;
+  }
+
+  // Medium
+  else if (level === 2) {
+
+    poisonCount = 3;
+  }
+
+  // Impossible
+  else if (level === 3) {
+
+    poisonCount = 5;
+  }
 
   for (let i = 0; i < poisonCount; i++) {
 
-    let poison = {
-      x: Math.floor(Math.random() * tileCountX),
-      y: Math.floor(Math.random() * tileCountY)
-    };
+    let validPosition = false;
 
-    poisons.push(poison);
+    while (!validPosition) {
+
+      let poison = {
+
+        x: Math.floor(
+          Math.random() * tileCountX
+        ),
+
+        y: Math.floor(
+          Math.random() * tileCountY
+        )
+      };
+
+      validPosition = true;
+
+      // Not on snake
+      for (let j = 0; j < snake.length; j++) {
+
+        if (
+          poison.x === snake[j].x &&
+          poison.y === snake[j].y
+        ) {
+          validPosition = false;
+        }
+      }
+
+      // Not on food
+      if (
+        poison.x === foodX &&
+        poison.y === foodY
+      ) {
+        validPosition = false;
+      }
+
+      if (validPosition) {
+
+        poisons.push(poison);
+      }
+    }
   }
 }
 
@@ -206,10 +293,11 @@ function createPoison() {
 function drawScore() {
 
   ctx.fillStyle = "white";
+
   ctx.font = "20px Arial";
 
   ctx.fillText(
-    "Score: " + score,
+    "Score: " + score + "/" + winScore,
     10,
     25
   );
@@ -219,21 +307,22 @@ function drawScore() {
 function drawLevel() {
 
   ctx.fillStyle = "white";
+
   ctx.font = "20px Arial";
 
   ctx.fillText(
     "Level: " + level,
-    300,
+    280,
     25
   );
 }
 
-// Collision detection
+// Collision
 function checkCollision() {
 
   const head = snake[0];
 
-  // Wall collision
+  // Wall
   if (
     head.x < 0 ||
     head.x >= tileCountX ||
@@ -243,7 +332,7 @@ function checkCollision() {
     return true;
   }
 
-  // Self collision
+  // Self
   for (let i = 1; i < snake.length; i++) {
 
     if (
@@ -254,7 +343,7 @@ function checkCollision() {
     }
   }
 
-  // Poison collision
+  // Poison
   for (let i = 0; i < poisons.length; i++) {
 
     if (
@@ -268,45 +357,91 @@ function checkCollision() {
   return false;
 }
 
-// Keyboard controls
-document.addEventListener("keydown", changeDirection);
+// Controls
+document.addEventListener(
+  "keydown",
+  changeDirection
+);
 
 function changeDirection(event) {
 
   // Left
-  if (event.key === "ArrowLeft" && dx !== 1) {
+  if (
+    event.key === "ArrowLeft" &&
+    dx !== 1
+  ) {
 
     dx = -1;
     dy = 0;
   }
 
   // Up
-  else if (event.key === "ArrowUp" && dy !== 1) {
+  else if (
+    event.key === "ArrowUp" &&
+    dy !== 1
+  ) {
 
     dx = 0;
     dy = -1;
   }
 
   // Right
-  else if (event.key === "ArrowRight" && dx !== -1) {
+  else if (
+    event.key === "ArrowRight" &&
+    dx !== -1
+  ) {
 
     dx = 1;
     dy = 0;
   }
 
   // Down
-  else if (event.key === "ArrowDown" && dy !== -1) {
+  else if (
+    event.key === "ArrowDown" &&
+    dy !== -1
+  ) {
 
     dx = 0;
     dy = 1;
   }
 }
 
-// Create first food
-createFood();
-
-// Create first poison
-createPoison();
-
 // Start game
-drawGame();
+startButton.addEventListener(
+  "click",
+  () => {
+
+    if (gameStarted) {
+      return;
+    }
+
+    gameStarted = true;
+
+    level = Number(
+      levelSelect.value
+    );
+
+    // Easy
+    if (level === 1) {
+
+      gameSpeed = 150;
+    }
+
+    // Medium
+    else if (level === 2) {
+
+      gameSpeed = 100;
+    }
+
+    // Impossible
+    else if (level === 3) {
+
+      gameSpeed = 70;
+    }
+
+    createFood();
+    createPoison();
+
+    drawGame();
+  }
+);
