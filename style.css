@@ -28,6 +28,9 @@ canvas {
   border: 4px solid #66787a;
   border-radius: 10px;
   box-shadow: 0 0 20px #85d6df;
+  display: block;
+  margin: 60px auto;
+  background: navy;
 }
 
 body {
@@ -70,8 +73,6 @@ body {
   border-radius: 4px;
 }
 
-canvas {
-  display: block;
-  margin: 60px auto;
-  background: navy;
+#background {
+  display: none;
 }

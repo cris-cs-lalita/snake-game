@@ -12,6 +12,8 @@ const gridSize = 20;
 const tileCountX = canvas.width / gridSize;
 const tileCountY = canvas.height / gridSize;
 
+let background = document.getElementById("background");
+
 // Snake
 let snake = [
   { x: 10, y: 10 }
@@ -85,7 +87,7 @@ function drawGame() {
 
 // Clear screen
 function clearScreen() {
-
+  /*
   ctx.fillStyle = "black";
 
   ctx.fillRect(
@@ -94,6 +96,9 @@ function clearScreen() {
     canvas.width,
     canvas.height
   );
+  */
+  ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
 }
 
 // Draw snake
