@@ -7,46 +7,62 @@ const levelSelect =
 const startButton =
   document.getElementById("startButton");
 
-const gridSize = 20;
+const background =
+  document.getElementById("background");
 
+/* GRID SIZE */
+const gridSize = 25;
+
+/* TILE COUNT */
 const tileCountX = canvas.width / gridSize;
 const tileCountY = canvas.height / gridSize;
 
-let background =
-  document.getElementById("background");
-
-// Snake
+/* SNAKE */
 let snake = [
   { x: 10, y: 10 }
 ];
 
-// Movement
+/* MOVEMENT */
 let dx = 1;
 let dy = 0;
 
-// Food
+/* FOOD */
 let foodX = 0;
 let foodY = 0;
 
-// Poison array
+/* FOOD EMOJIS */
+const foodEmojis = [
+  "🥯",
+  "🍮",
+  "🥞",
+  "🍨",
+  "🥨",
+  "🥐",
+  "🧁",
+  "🥧"
+];
+
+let currentFoodEmoji = "🍮";
+
+/* POISON */
 let poisons = [];
 
-// Score
+/* SCORE */
 let score = 0;
 
-// Level
+/* LEVEL */
 let level = 1;
 
-// Win score
+/* WIN SCORE */
 const winScore = 6;
 
-// Game speed
+/* GAME SPEED */
 let gameSpeed = 150;
 
-// Game started
+/* GAME START */
 let gameStarted = false;
 
-// Main game loop
+/* MAIN LOOP */
 function drawGame() {
 
   if (!gameStarted) {
@@ -55,7 +71,6 @@ function drawGame() {
 
   moveSnake();
 
-  // Collision
   if (checkCollision()) {
 
     alert("Game Over!");
@@ -73,7 +88,6 @@ function drawGame() {
   drawScore();
   drawLevel();
 
-  // Win
   if (score >= winScore) {
 
     alert("You Win!");
@@ -86,7 +100,7 @@ function drawGame() {
   setTimeout(drawGame, gameSpeed);
 }
 
-// Clear screen
+/* CLEAR SCREEN */
 function clearScreen() {
 
   ctx.clearRect(
@@ -105,7 +119,7 @@ function clearScreen() {
   );
 }
 
-// Draw snake
+/* DRAW SNAKE */
 function drawSnake() {
 
   ctx.fillStyle = "lime";
@@ -130,65 +144,63 @@ function drawSnake() {
   });
 }
 
-// Move snake
+/* MOVE SNAKE */
 function moveSnake() {
 
   const head = {
+
     x: snake[0].x + dx,
     y: snake[0].y + dy
   };
 
   snake.unshift(head);
 
-  // Eat food
-  if (head.x === foodX && head.y === foodY) {
+  /* EAT FOOD */
+  if (
+    head.x === foodX &&
+    head.y === foodY
+  ) {
 
     score++;
 
     createFood();
     createPoison();
+  }
 
-  } else {
+  else {
 
     snake.pop();
   }
 }
 
-// Draw food
+/* DRAW FOOD */
 function drawFood() {
 
-  ctx.fillStyle = "red";
+  ctx.font = "25px Arial";
 
-  ctx.fillRect(
+  ctx.fillText(
+    currentFoodEmoji,
     foodX * gridSize,
-    foodY * gridSize,
-    gridSize,
-    gridSize
+    foodY * gridSize + 22
   );
 }
 
-// Draw poison
+/* DRAW POISON */
 function drawPoison() {
 
-  ctx.fillStyle = "purple";
+  ctx.font = "25px Arial";
 
   poisons.forEach(poison => {
 
-    ctx.beginPath();
-
-    ctx.arc(
-      poison.x * gridSize + 10,
-      poison.y * gridSize + 10,
-      10,
-      0,
-      Math.PI * 2
+    ctx.fillText(
+      "💣",
+      poison.x * gridSize,
+      poison.y * gridSize + 22
     );
-
-    ctx.fill();
   });
 }
 
-// Create food
+/* CREATE FOOD */
 function createFood() {
 
   let validPosition = false;
@@ -196,63 +208,89 @@ function createFood() {
   while (!validPosition) {
 
     foodX =
-      Math.floor(Math.random() * tileCountX);
+      Math.floor(
+        Math.random() * tileCountX
+      );
 
     foodY =
-      Math.floor(Math.random() * tileCountY);
+      Math.floor(
+        Math.random() * tileCountY
+      );
 
     validPosition = true;
 
-    // Not on snake
-    for (let i = 0; i < snake.length; i++) {
+    currentFoodEmoji =
+      foodEmojis[
+        Math.floor(
+          Math.random() *
+          foodEmojis.length
+        )
+      ];
+
+    /* NOT ON SNAKE */
+    for (
+      let i = 0;
+      i < snake.length;
+      i++
+    ) {
 
       if (
         snake[i].x === foodX &&
         snake[i].y === foodY
       ) {
+
         validPosition = false;
       }
     }
 
-    // Not on poison
-    for (let i = 0; i < poisons.length; i++) {
+    /* NOT ON POISON */
+    for (
+      let i = 0;
+      i < poisons.length;
+      i++
+    ) {
 
       if (
         poisons[i].x === foodX &&
         poisons[i].y === foodY
       ) {
+
         validPosition = false;
       }
     }
   }
 }
 
-// Create poison
+/* CREATE POISON */
 function createPoison() {
 
   poisons = [];
 
   let poisonCount = 1;
 
-  // Easy
+  /* EASY */
   if (level === 1) {
 
     poisonCount = 1;
   }
 
-  // Medium
+  /* MEDIUM */
   else if (level === 2) {
 
     poisonCount = 3;
   }
 
-  // Impossible
+  /* IMPOSSIBLE */
   else if (level === 3) {
 
     poisonCount = 5;
   }
 
-  for (let i = 0; i < poisonCount; i++) {
+  for (
+    let i = 0;
+    i < poisonCount;
+    i++
+  ) {
 
     let validPosition = false;
 
@@ -271,22 +309,28 @@ function createPoison() {
 
       validPosition = true;
 
-      // Not on snake
-      for (let j = 0; j < snake.length; j++) {
+      /* NOT ON SNAKE */
+      for (
+        let j = 0;
+        j < snake.length;
+        j++
+      ) {
 
         if (
           poison.x === snake[j].x &&
           poison.y === snake[j].y
         ) {
+
           validPosition = false;
         }
       }
 
-      // Not on food
+      /* NOT ON FOOD */
       if (
         poison.x === foodX &&
         poison.y === foodY
       ) {
+
         validPosition = false;
       }
 
@@ -298,7 +342,7 @@ function createPoison() {
   }
 }
 
-// Draw score
+/* DRAW SCORE */
 function drawScore() {
 
   ctx.fillStyle = "white";
@@ -306,13 +350,16 @@ function drawScore() {
   ctx.font = "20px Arial";
 
   ctx.fillText(
-    "Score: " + score + "/" + winScore,
+    "Score: " +
+    score +
+    "/" +
+    winScore,
     10,
     25
   );
 }
 
-// Draw level
+/* DRAW LEVEL */
 function drawLevel() {
 
   ctx.fillStyle = "white";
@@ -321,44 +368,55 @@ function drawLevel() {
 
   ctx.fillText(
     "Level: " + level,
-    280,
+    260,
     25
   );
 }
 
-// Collision
+/* COLLISION */
 function checkCollision() {
 
   const head = snake[0];
 
-  // Wall
+  /* WALL */
   if (
     head.x < 0 ||
     head.x >= tileCountX ||
     head.y < 0 ||
     head.y >= tileCountY
   ) {
+
     return true;
   }
 
-  // Self
-  for (let i = 1; i < snake.length; i++) {
+  /* SELF */
+  for (
+    let i = 1;
+    i < snake.length;
+    i++
+  ) {
 
     if (
       head.x === snake[i].x &&
       head.y === snake[i].y
     ) {
+
       return true;
     }
   }
 
-  // Poison
-  for (let i = 0; i < poisons.length; i++) {
+  /* POISON */
+  for (
+    let i = 0;
+    i < poisons.length;
+    i++
+  ) {
 
     if (
       head.x === poisons[i].x &&
       head.y === poisons[i].y
     ) {
+
       return true;
     }
   }
@@ -366,7 +424,7 @@ function checkCollision() {
   return false;
 }
 
-// Controls
+/* CONTROLS */
 document.addEventListener(
   "keydown",
   changeDirection
@@ -374,7 +432,7 @@ document.addEventListener(
 
 function changeDirection(event) {
 
-  // Left
+  /* LEFT */
   if (
     event.key === "ArrowLeft" &&
     dx !== 1
@@ -384,7 +442,7 @@ function changeDirection(event) {
     dy = 0;
   }
 
-  // Up
+  /* UP */
   else if (
     event.key === "ArrowUp" &&
     dy !== 1
@@ -394,7 +452,7 @@ function changeDirection(event) {
     dy = -1;
   }
 
-  // Right
+  /* RIGHT */
   else if (
     event.key === "ArrowRight" &&
     dx !== -1
@@ -404,7 +462,7 @@ function changeDirection(event) {
     dy = 0;
   }
 
-  // Down
+  /* DOWN */
   else if (
     event.key === "ArrowDown" &&
     dy !== -1
@@ -415,7 +473,7 @@ function changeDirection(event) {
   }
 }
 
-// Start game
+/* START GAME */
 startButton.addEventListener(
   "click",
   () => {
@@ -426,23 +484,22 @@ startButton.addEventListener(
 
     gameStarted = true;
 
-    level = Number(
-      levelSelect.value
-    );
+    level =
+      Number(levelSelect.value);
 
-    // Easy
+    /* EASY */
     if (level === 1) {
 
       gameSpeed = 150;
     }
 
-    // Medium
+    /* MEDIUM */
     else if (level === 2) {
 
       gameSpeed = 100;
     }
 
-    // Impossible
+    /* IMPOSSIBLE */
     else if (level === 3) {
 
       gameSpeed = 70;
