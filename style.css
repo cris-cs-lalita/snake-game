@@ -14,7 +14,6 @@ body {
   left: 10px;
 
   background: hsl(330, 100%, 87%);
-
   padding: 8px 12px;
 
   border-radius: 6px;
@@ -31,11 +30,8 @@ body {
 
 #startButton {
   padding: 4px 10px;
-
   border: none;
-
   background: white;
-
   cursor: pointer;
   border-radius: 4px;
 }
@@ -44,7 +40,7 @@ canvas {
   display: block;
   margin: 60px auto;
 
-  background-image: url(https://i.pinimg.com/736x/99/0e/38/990e3891c3b075d8525f38e08d8a684d.jpg);
+  background-image: url("https://i.pinimg.com/736x/99/0e/38/990e3891c3b075d8525f38e08d8a684d.jpg");
   background-size: cover;
   background-position: center;
 
