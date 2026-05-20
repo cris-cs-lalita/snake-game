@@ -27,6 +27,20 @@ let dy = 0;
 let foodX = 0;
 let foodY = 0;
 
+/* FOOD EMOJIS */
+const foodEmojis = [
+  "🥯",
+  "🍮",
+  "🥞",
+  "🍨",
+  "🥨",
+  "🥐",
+  "🧁",
+  "🥧"
+];
+
+let currentFoodEmoji = "🍮";
+
 /* POISON */
 let poisons = [];
 
@@ -153,34 +167,27 @@ function moveSnake() {
 /* DRAW FOOD */
 function drawFood() {
 
-  ctx.fillStyle = "red";
+  ctx.font = "25px Arial";
 
-  ctx.fillRect(
+  ctx.fillText(
+    currentFoodEmoji,
     foodX * gridSize,
-    foodY * gridSize,
-    gridSize,
-    gridSize
+    foodY * gridSize + 22
   );
 }
 
 /* DRAW POISON */
 function drawPoison() {
 
-  ctx.fillStyle = "purple";
+  ctx.font = "25px Arial";
 
   poisons.forEach(poison => {
 
-    ctx.beginPath();
-
-    ctx.arc(
-      poison.x * gridSize + gridSize / 2,
-      poison.y * gridSize + gridSize / 2,
-      gridSize / 2,
-      0,
-      Math.PI * 2
+    ctx.fillText(
+      "💣",
+      poison.x * gridSize,
+      poison.y * gridSize + 22
     );
-
-    ctx.fill();
   });
 }
 
@@ -202,6 +209,14 @@ function createFood() {
       );
 
     validPosition = true;
+
+    currentFoodEmoji =
+      foodEmojis[
+        Math.floor(
+          Math.random() *
+          foodEmojis.length
+        )
+      ];
 
     /* NOT ON SNAKE */
     for (
