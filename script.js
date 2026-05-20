@@ -7,9 +7,6 @@ const levelSelect =
 const startButton =
   document.getElementById("startButton");
 
-const background =
-  document.getElementById("background");
-
 /* GRID SIZE */
 const gridSize = 25;
 
@@ -48,7 +45,7 @@ let gameSpeed = 150;
 /* GAME START */
 let gameStarted = false;
 
-/* MAIN LOOP */
+/* MAIN GAME LOOP */
 function drawGame() {
 
   if (!gameStarted) {
@@ -57,6 +54,7 @@ function drawGame() {
 
   moveSnake();
 
+  /* COLLISION */
   if (checkCollision()) {
 
     alert("Game Over!");
@@ -74,6 +72,7 @@ function drawGame() {
   drawScore();
   drawLevel();
 
+  /* WIN */
   if (score >= winScore) {
 
     alert("You Win!");
@@ -90,14 +89,6 @@ function drawGame() {
 function clearScreen() {
 
   ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  ctx.drawImage(
-    background,
     0,
     0,
     canvas.width,
@@ -358,7 +349,7 @@ function drawLevel() {
   );
 }
 
-/* COLLISION */
+/* CHECK COLLISION */
 function checkCollision() {
 
   const head = snake[0];
