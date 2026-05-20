@@ -4,11 +4,12 @@ const ctx = canvas.getContext("2d");
 const levelSelect =
   document.getElementById("levelSelect");
 
-const startButton =
-  document.getElementById("startButton");
+const endOverlay = document.getElementById("endOverlay");
+const endMessageEl = document.getElementById("endMessage");
+const actionButton = document.getElementById("actionButton");
 
 /* GRID SIZE */
-const gridSize = 25;
+const gridSize = 30;
 
 /* TILE COUNT */
 const tileCountX = canvas.width / gridSize;
@@ -50,14 +51,15 @@ let score = 0;
 /* LEVEL */
 let level = 1;
 
-/* WIN SCORE */
-const winScore = 6;
-
 /* GAME SPEED */
 let gameSpeed = 150;
 
 /* GAME START */
 let gameStarted = false;
+
+/* LIVES */
+const maxLives = 5;
+let lives = maxLives;
 
 /* MAIN GAME LOOP */
 function drawGame() {
@@ -71,9 +73,7 @@ function drawGame() {
   /* COLLISION */
   if (checkCollision()) {
 
-    alert("Game Over!");
-
-    document.location.reload();
+    showEndMessage("Game Over!");
 
     return;
   }
@@ -83,18 +83,7 @@ function drawGame() {
   drawFood();
   drawPoison();
   drawSnake();
-  drawScore();
-  drawLevel();
-
-  /* WIN */
-  if (score >= winScore) {
-
-    alert("You Win!");
-
-    document.location.reload();
-
-    return;
-  }
+  drawLives();
 
   setTimeout(drawGame, gameSpeed);
 }
@@ -113,10 +102,10 @@ function clearScreen() {
 /* DRAW SNAKE */
 function drawSnake() {
 
-  ctx.fillStyle = "#f9fab9";
+  ctx.fillStyle = "#ff9cd8";
+  ctx.strokeStyle = "#ff9cd8";
 
-  snake.forEach(part => {
-
+  snake.forEach((part, index) => {
     ctx.fillRect(
       part.x * gridSize,
       part.y * gridSize,
@@ -124,16 +113,55 @@ function drawSnake() {
       gridSize
     );
 
-    ctx.strokeStyle = "black";
-
     ctx.strokeRect(
       part.x * gridSize,
       part.y * gridSize,
       gridSize,
       gridSize
     );
+
+    if (index === 0) {
+      drawHeadEyes(part);
+    }
   });
 }
+
+function drawHeadEyes(part) {
+  const eyeSize = 4;
+  const padding = 6;
+  const x = part.x * gridSize;
+  const y = part.y * gridSize;
+
+  const previousFill = ctx.fillStyle;
+  ctx.fillStyle = "black";
+
+  let eye1 = { x: x + padding, y: y + padding };
+  let eye2 = { x: x + padding, y: y + gridSize - padding - eyeSize };
+
+  if (dx === 1) {
+    eye1.x = x + gridSize - padding - eyeSize;
+    eye2.x = x + gridSize - padding - eyeSize;
+  } else if (dx === -1) {
+    eye1.x = x + padding;
+    eye2.x = x + padding;
+  } else if (dy === 1) {
+    eye1.x = x + padding;
+    eye2.x = x + gridSize - padding - eyeSize;
+    eye1.y = y + gridSize - padding - eyeSize;
+    eye2.y = y + gridSize - padding - eyeSize;
+  }
+
+  if (dy === -1) {
+    eye1.y = y + padding;
+    eye2.y = y + padding;
+  }
+
+  ctx.fillRect(eye1.x, eye1.y, eyeSize, eyeSize);
+  ctx.fillRect(eye2.x, eye2.y, eyeSize, eyeSize);
+
+  ctx.fillStyle = previousFill;
+}
+
 
 /* MOVE SNAKE */
 function moveSnake() {
@@ -167,26 +195,26 @@ function moveSnake() {
 /* DRAW FOOD */
 function drawFood() {
 
-  ctx.font = "25px Arial";
+  ctx.font = "32px Arial";
 
   ctx.fillText(
     currentFoodEmoji,
     foodX * gridSize,
-    foodY * gridSize + 22
+    foodY * gridSize + 28
   );
 }
 
 /* DRAW POISON */
 function drawPoison() {
 
-  ctx.font = "25px Arial";
+  ctx.font = "32px Arial";
 
   poisons.forEach(poison => {
 
     ctx.fillText(
       "💣",
       poison.x * gridSize,
-      poison.y * gridSize + 22
+      poison.y * gridSize + 28
     );
   });
 }
@@ -334,20 +362,21 @@ function createPoison() {
 }
 
 /* DRAW SCORE */
-function drawScore() {
+function drawLives() {
 
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "#73736e";
 
-  ctx.font = "20px Arial";
+  ctx.font = "28px Arial";
 
-  ctx.fillText(
-    "Score: " +
-    score +
-    "/" +
-    winScore,
-    10,
-    25
-  );
+  let lifeText = "ℒ𝒾𝓋ℯ𝓈: ";
+
+  for (let i = 0; i < lives; i++) {
+    lifeText += "🎀 ";
+  }
+
+  lifeText = lifeText.trim();
+
+  ctx.fillText(lifeText, 10, 25);
 }
 
 /* DRAW LEVEL */
@@ -362,6 +391,72 @@ function drawLevel() {
     260,
     25
   );
+}
+
+/* SHOW END MESSAGE ON CANVAS */
+function showEndMessage(message) {
+
+  gameStarted = false;
+
+  if (endMessageEl && endOverlay) {
+
+    endMessageEl.textContent = message;
+
+    if (actionButton) {
+      actionButton.textContent = "Restart";
+    }
+
+    endOverlay.classList.remove("hidden");
+  }
+}
+
+function resetGame() {
+
+  // reset state
+  snake = [{ x: 10, y: 10 }];
+
+  dx = 1;
+  dy = 0;
+
+  score = 0;
+  lives = maxLives;
+
+  poisons = [];
+
+  level = Number(levelSelect.value);
+
+  if (level === 1) {
+    gameSpeed = 150;
+  } else if (level === 2) {
+    gameSpeed = 100;
+  } else if (level === 3) {
+    gameSpeed = 70;
+  }
+
+  createFood();
+  createPoison();
+
+  if (endOverlay) {
+    endOverlay.classList.add("hidden");
+  }
+
+  gameStarted = true;
+
+  drawGame();
+}
+
+if (actionButton) {
+  actionButton.addEventListener("click", () => {
+    if (gameStarted) {
+      return;
+    }
+
+    if (endOverlay) {
+      endOverlay.classList.add("hidden");
+    }
+
+    resetGame();
+  });
 }
 
 /* CHECK COLLISION */
@@ -408,7 +503,10 @@ function checkCollision() {
       head.y === poisons[i].y
     ) {
 
-      return true;
+      lives -= 1;
+      poisons.splice(i, 1);
+      createPoison();
+      return lives <= 0;
     }
   }
 
@@ -464,41 +562,4 @@ function changeDirection(event) {
   }
 }
 
-/* START GAME */
-startButton.addEventListener(
-  "click",
-  () => {
-
-    if (gameStarted) {
-      return;
-    }
-
-    gameStarted = true;
-
-    level =
-      Number(levelSelect.value);
-
-    /* EASY */
-    if (level === 1) {
-
-      gameSpeed = 150;
-    }
-
-    /* MEDIUM */
-    else if (level === 2) {
-
-      gameSpeed = 100;
-    }
-
-    /* IMPOSSIBLE */
-    else if (level === 3) {
-
-      gameSpeed = 70;
-    }
-
-    createFood();
-    createPoison();
-
-    drawGame();
-  }
-);
+/* START handled via on-screen action button */
