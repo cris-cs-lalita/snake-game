@@ -1,9 +1,88 @@
+body {
+
+  background-color: #eac3dc;
+
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  height: 100vh;
+}
+
+/* TOP BAR */
+
+#topBar {
+
+  margin-bottom: 15px;
+
+  background: #ffb6d9;
+
+  padding: 8px 12px;
+
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+/* LEVEL SELECT */
+
+#levelSelect {
+
+  padding: 5px;
+
+  font-size: 14px;
+
+  border: none;
+
+  border-radius: 5px;
+
+  outline: none;
+}
+
+/* START BUTTON */
+
+#startButton {
+
+  padding: 5px 12px;
+
+  border: none;
+
+  border-radius: 5px;
+
+  background: white;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+  transition: 0.2s;
+}
+
+#startButton:hover {
+
+  background: #ffeaf3;
+}
+
+/* GAME CANVAS */
+
 canvas {
 
   display: block;
 
   width: 600px;
   height: 600px;
+
+  margin: 0 auto;
 
   border: 4px solid #ffd1e5;
 
@@ -13,19 +92,24 @@ canvas {
 
   background-color: #fff5f8;
 
-  /* PERFECT GRID */
+  /* PERFECT CHECKERBOARD */
 
   background-image:
-    linear-gradient(45deg, #f7d6e0 25%, transparent 25%),
-    linear-gradient(-45deg, #f7d6e0 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #f7d6e0 75%),
-    linear-gradient(-45deg, transparent 75%, #f7d6e0 75%);
+    linear-gradient(45deg,
+      #f7d6e0 25%,
+      transparent 25%,
+      transparent 75%,
+      #f7d6e0 75%),
+
+    linear-gradient(45deg,
+      #f7d6e0 25%,
+      transparent 25%,
+      transparent 75%,
+      #f7d6e0 75%);
 
   background-size: 50px 50px;
 
   background-position:
     0 0,
-    0 25px,
-    25px -25px,
-    -25px 0px;
+    25px 25px;
 }
