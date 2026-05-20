@@ -5,11 +5,51 @@ body {
   align-items: center;
   height: 100vh;
   margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+#topBar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+
+  background: hsl(330, 100%, 87%);
+
+  padding: 8px 12px;
+
+  border-radius: 6px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#levelSelect {
+  padding: 4px;
+  font-size: 14px;
+}
+
+#startButton {
+  padding: 4px 10px;
+
+  border: none;
+
+  background: white;
+
+  cursor: pointer;
+  border-radius: 4px;
 }
 
 canvas {
-  background-color: #a0cc80;
-  border: 4px solid #ff75b3;
+  display: block;
+  margin: 60px auto;
+
+  background-image: url(https://i.pinimg.com/736x/99/0e/38/990e3891c3b075d8525f38e08d8a684d.jpg);
+  background-size: cover;
+  background-position: center;
+
+  border: 4px solid #ffd1e5;
   border-radius: 10px;
+
   box-shadow: 0 0 20px #fbffda;
 }
