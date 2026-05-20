@@ -113,7 +113,7 @@ function clearScreen() {
 /* DRAW SNAKE */
 function drawSnake() {
 
-  ctx.fillStyle = "lime";
+  ctx.fillStyle = "#f9fab9";
 
   snake.forEach(part => {
 
