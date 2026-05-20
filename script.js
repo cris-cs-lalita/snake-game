@@ -9,12 +9,61 @@ const endMessageEl = document.getElementById("endMessage");
 const endStatsEl = document.getElementById("endStats");
 const actionButton = document.getElementById("actionButton");
 const musicToggleButton = document.getElementById("musicToggle");
+const musicStyleToggleButton = document.getElementById("musicStyleToggle");
 
 let audioCtx;
-let musicGain;
-let musicOscillator;
-let musicLFO;
+let musicIntervalId = null;
+let musicStep = 0;
+let currentMusicStyle = 0;
 let isMusicPlaying = false;
+let gameOverTriggeredMusic = false;
+let isGameOverMusic = false;
+
+const musicStyles = [
+  {
+    name: "Kawaii Pop",
+    chords: [
+      [60, 64, 67],
+      [62, 65, 69],
+      [55, 59, 62],
+      [57, 60, 64]
+    ],
+    melody: [72, 74, 76, 77, 79, 81, 79, 77],
+    bass: [48, 50, 53, 55],
+    chordType: "triangle",
+    melodyType: "sawtooth",
+    bassType: "square"
+  },
+  {
+    name: "Bubbly Dream",
+    chords: [
+      [59, 62, 66],
+      [57, 61, 64],
+      [55, 59, 62],
+      [60, 64, 67]
+    ],
+    melody: [71, 73, 74, 76, 78, 79, 81, 83],
+    bass: [43, 46, 50, 55],
+    chordType: "sine",
+    melodyType: "triangle",
+    bassType: "square"
+  }
+];
+
+const sadMusicStyle = {
+  name: "Sad",
+  chords: [
+    [57, 60, 64],
+    [55, 59, 62],
+    [53, 57, 60],
+    [48, 52, 55]
+  ],
+  melody: [67, 66, 64, 62, 60, 62, 64, 62],
+  bass: [40, 43, 45, 47],
+  chordType: "sine",
+  melodyType: "triangle",
+  bassType: "square"
+};
 
 /* GRID SIZE */
 const gridSize = 30;
@@ -413,30 +462,168 @@ function drawScore() {
   );
 }
 
+function midiToFrequency(note) {
+  return 440 * Math.pow(2, (note - 69) / 12);
+}
+
+function playVoice(note, duration, type, gainValue) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(
+    midiToFrequency(note),
+    audioCtx.currentTime
+  );
+
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(
+    gainValue,
+    audioCtx.currentTime + 0.02
+  );
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioCtx.currentTime + duration
+  );
+
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration + 0.05);
+}
+
+function playChord(notes, duration, type) {
+  notes.forEach(note => {
+    playVoice(note, duration, type, 0.06);
+  });
+}
+
+function playMelody(note, duration, type) {
+  playVoice(note, duration, type, 0.08);
+}
+
+function playBass(note, duration, type) {
+  playVoice(note, duration, type, 0.04);
+}
+
 function initializeMusic() {
   if (audioCtx) {
     return;
   }
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  musicGain = audioCtx.createGain();
-  musicGain.gain.value = 0;
-  musicGain.connect(audioCtx.destination);
+}
 
-  musicOscillator = audioCtx.createOscillator();
-  musicOscillator.type = "triangle";
-  musicOscillator.frequency.value = 220;
-  musicOscillator.connect(musicGain);
+function startMusicLoop() {
+  if (musicIntervalId) {
+    return;
+  }
 
-  musicLFO = audioCtx.createOscillator();
-  const lfoGain = audioCtx.createGain();
-  musicLFO.frequency.value = 3.5;
-  lfoGain.gain.value = 28;
-  musicLFO.connect(lfoGain);
-  lfoGain.connect(musicOscillator.frequency);
+  musicStep = 0;
+  playMusicStep();
 
-  musicOscillator.start();
-  musicLFO.start();
+  musicIntervalId = setInterval(
+    playMusicStep,
+    520
+  );
+}
+
+function stopMusicLoop() {
+  if (musicIntervalId) {
+    clearInterval(musicIntervalId);
+    musicIntervalId = null;
+  }
+}
+
+function playMusicStep() {
+  const style =
+    isGameOverMusic ? sadMusicStyle : musicStyles[currentMusicStyle];
+  const isSad = isGameOverMusic;
+  const chord = style.chords[musicStep % style.chords.length];
+  playChord(
+    chord,
+    isSad ? 0.92 : currentMusicStyle === 1 ? 0.92 : 0.58,
+    style.chordType
+  );
+
+  const melodyNote =
+    style.melody[musicStep % style.melody.length];
+  playMelody(
+    melodyNote,
+    isSad ? 0.4 : currentMusicStyle === 1 ? 0.4 : 0.22,
+    style.melodyType
+  );
+
+  const bassNote =
+    style.bass[musicStep % style.bass.length];
+  playBass(
+    bassNote,
+    isSad ? 0.92 : currentMusicStyle === 1 ? 0.92 : 0.58,
+    style.bassType
+  );
+
+  musicStep += 1;
+}
+
+function getNextMusicStyleName() {
+  return musicStyles[
+    (currentMusicStyle + 1) % musicStyles.length
+  ].name;
+}
+
+function updateMusicStyleButton() {
+  if (!musicStyleToggleButton) {
+    return;
+  }
+
+  musicStyleToggleButton.textContent =
+    "Switch to " + getNextMusicStyleName();
+}
+
+function changeMusicStyle() {
+  const nextStyleName =
+    currentMusicStyle === 0 ? "bubbly" : "kawaii";
+  setMusicStyle(nextStyleName, isMusicPlaying);
+}
+
+function setMusicStyle(styleName, autoStart = false) {
+  const targetStyle =
+    styleName === "bubbly" ? 1 : 0;
+
+  if (currentMusicStyle === targetStyle && !autoStart) {
+    updateMusicStyleButton();
+    return;
+  }
+
+  currentMusicStyle = targetStyle;
+  updateMusicStyleButton();
+
+  if (isGameOverMusic) {
+    isGameOverMusic = false;
+  }
+
+  if (isMusicPlaying || autoStart) {
+    stopMusicLoop();
+    isMusicPlaying = true;
+    startMusicLoop();
+  }
+}
+
+function startSadMusic() {
+  isGameOverMusic = true;
+  stopMusicLoop();
+  isMusicPlaying = true;
+  startMusicLoop();
+
+  if (musicToggleButton) {
+    musicToggleButton.textContent = "Pause Music";
+  }
+}
+
+function stopSadMusic() {
+  if (isGameOverMusic) {
+    isGameOverMusic = false;
+    stopMusicLoop();
+  }
 }
 
 function toggleMusic() {
@@ -447,11 +634,12 @@ function toggleMusic() {
   }
 
   isMusicPlaying = !isMusicPlaying;
-  musicGain.gain.setTargetAtTime(
-    isMusicPlaying ? 0.08 : 0,
-    audioCtx.currentTime,
-    0.05
-  );
+
+  if (isMusicPlaying) {
+    startMusicLoop();
+  } else {
+    stopMusicLoop();
+  }
 
   if (musicToggleButton) {
     musicToggleButton.textContent =
@@ -478,6 +666,9 @@ function showEndMessage(message) {
 
     endOverlay.classList.remove("hidden");
   }
+
+  gameOverTriggeredMusic = true;
+  startSadMusic();
 }
 
 function resetGame() {
@@ -514,6 +705,15 @@ function resetGame() {
     endStatsEl.textContent = "";
   }
 
+  if (gameOverTriggeredMusic) {
+    gameOverTriggeredMusic = false;
+    stopSadMusic();
+    if (isMusicPlaying) {
+      stopMusicLoop();
+      startMusicLoop();
+    }
+  }
+
   gameStarted = true;
 
   drawGame();
@@ -535,6 +735,11 @@ if (actionButton) {
 
 if (musicToggleButton) {
   musicToggleButton.addEventListener("click", toggleMusic);
+}
+
+if (musicStyleToggleButton) {
+  musicStyleToggleButton.addEventListener("click", changeMusicStyle);
+  updateMusicStyleButton();
 }
 
 /* CHECK COLLISION */

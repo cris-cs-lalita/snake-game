@@ -51,6 +51,7 @@ body {
 }
 
 #musicToggle,
+#musicStyleToggle,
 #actionButton {
   padding: 10px 18px;
   font-size: 16px;
@@ -64,6 +65,7 @@ body {
 }
 
 #musicToggle:hover,
+#musicStyleToggle:hover,
 #actionButton:hover {
   background: #ffeaf3;
 }
