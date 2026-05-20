@@ -6,7 +6,15 @@ const levelSelect =
 
 const endOverlay = document.getElementById("endOverlay");
 const endMessageEl = document.getElementById("endMessage");
+const endStatsEl = document.getElementById("endStats");
 const actionButton = document.getElementById("actionButton");
+const musicToggleButton = document.getElementById("musicToggle");
+
+let audioCtx;
+let musicGain;
+let musicOscillator;
+let musicLFO;
+let isMusicPlaying = false;
 
 /* GRID SIZE */
 const gridSize = 30;
@@ -61,6 +69,8 @@ let gameStarted = false;
 const maxLives = 5;
 let lives = maxLives;
 
+/* HIGH SCORE (persistent) */
+let highScore = Number(localStorage.getItem("snakeHighScore") || 0);
 /* MAIN GAME LOOP */
 function drawGame() {
 
@@ -84,6 +94,7 @@ function drawGame() {
   drawPoison();
   drawSnake();
   drawLives();
+  drawScore();
 
   setTimeout(drawGame, gameSpeed);
 }
@@ -180,7 +191,17 @@ function moveSnake() {
     head.y === foodY
   ) {
 
-    score++;
+    score += 100;
+
+    // update persistent high score
+    if (score > highScore) {
+      highScore = score;
+      try {
+        localStorage.setItem("snakeHighScore", String(highScore));
+      } catch (e) {
+        // ignore storage errors
+      }
+    }
 
     createFood();
     createPoison();
@@ -379,18 +400,63 @@ function drawLives() {
   ctx.fillText(lifeText, 10, 25);
 }
 
-/* DRAW LEVEL */
-function drawLevel() {
+function drawScore() {
 
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "#73736e";
 
   ctx.font = "20px Arial";
 
   ctx.fillText(
-    "Level: " + level,
-    260,
-    25
+    "Score: " + score,
+    10,
+    55
   );
+}
+
+function initializeMusic() {
+  if (audioCtx) {
+    return;
+  }
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  musicGain = audioCtx.createGain();
+  musicGain.gain.value = 0;
+  musicGain.connect(audioCtx.destination);
+
+  musicOscillator = audioCtx.createOscillator();
+  musicOscillator.type = "triangle";
+  musicOscillator.frequency.value = 220;
+  musicOscillator.connect(musicGain);
+
+  musicLFO = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  musicLFO.frequency.value = 3.5;
+  lfoGain.gain.value = 28;
+  musicLFO.connect(lfoGain);
+  lfoGain.connect(musicOscillator.frequency);
+
+  musicOscillator.start();
+  musicLFO.start();
+}
+
+function toggleMusic() {
+  initializeMusic();
+
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+
+  isMusicPlaying = !isMusicPlaying;
+  musicGain.gain.setTargetAtTime(
+    isMusicPlaying ? 0.08 : 0,
+    audioCtx.currentTime,
+    0.05
+  );
+
+  if (musicToggleButton) {
+    musicToggleButton.textContent =
+      isMusicPlaying ? "Pause Music" : "Play Music";
+  }
 }
 
 /* SHOW END MESSAGE ON CANVAS */
@@ -401,6 +467,10 @@ function showEndMessage(message) {
   if (endMessageEl && endOverlay) {
 
     endMessageEl.textContent = message;
+
+    if (endStatsEl) {
+      endStatsEl.textContent = "Score: " + score + "    High Score: " + highScore;
+    }
 
     if (actionButton) {
       actionButton.textContent = "Restart";
@@ -440,6 +510,10 @@ function resetGame() {
     endOverlay.classList.add("hidden");
   }
 
+  if (endStatsEl) {
+    endStatsEl.textContent = "";
+  }
+
   gameStarted = true;
 
   drawGame();
@@ -457,6 +531,10 @@ if (actionButton) {
 
     resetGame();
   });
+}
+
+if (musicToggleButton) {
+  musicToggleButton.addEventListener("click", toggleMusic);
 }
 
 /* CHECK COLLISION */
